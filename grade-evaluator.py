@@ -39,11 +39,55 @@ def evaluate_grades(data):
     print("\n--- Processing Grades ---")
     
     # TODO: a) Check if all scores are percentage based (0-100)
+    for item in data:
+        if item['score'] <0 or item['score'] > 100:
+            print(f"Warning! there is a problem with the scores of {item['assignment']}")
+
     # TODO: b) Validate total weights (Total=100, Summative=40, Formative=60)
+    formative_weight = 0
+    summative_weight = 0
+    total_weight = 0
+    for item in data:
+        total_weight += item['weight']
+        if item['group'] == "Formative":
+            formative_weight += item['weight']
+        if item['group'] == "Summative":
+            summative_weight += item['weight']
+    if total_weight != 100:
+        print(f"There is a problem with the total weight")
+    if formative_weight != 60:
+        print("There is a problem with Formative weight")
+    if summative_weight != 40:
+        print("There is a problem with the summative weight")
     # TODO: c) Calculate the Final Grade and GPA
+    final_grade = 0
+    for item in data:
+        grade = item['score'] * item['weight'] / 100
+        final_grade += grade
+    gpa = (final_grade / 100) * 5.0
     # TODO: d) Determine Pass/Fail status (>= 50% in BOTH categories)
+    cumulative_summative = 0
+    cumulative_formative = 0
+    for item in data:
+        if item['group'] == "Formative":
+            cumulative_formative += item['score'] * item['weight']
+        if item['group'] == "Summative":
+            cumulative_summative += item['score'] * item['weight']
+    av_formative = cumulative_formative / formative_weight
+    av_summative = cumulative_summative / summative_weight
+
+    if av_formative >= 50 and av_summative >= 50:
+        print("You have passed")
+    else:
+        print("You have failed")
     # TODO: e) Check for failed formative assignments (< 50%)
     #          and determine which one(s) have the highest weight for resubmission.
+    for item in data:
+        failed = []
+        if av_formative < 50:
+            if item['group'] == 'Formative' and item['score'] < 50:
+                failed.append(item)
+            
     # TODO: f) Print the final decision (PASSED / FAILED) and resubmission options
     
     pass

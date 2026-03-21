@@ -37,14 +37,14 @@ def evaluate_grades(data):
     Validates scores and weights, calculates GPA, determines pass/fail
     status, and identifies assignments eligible for resubmission.
     """
-    # Handle empty CSV file
+    # Handle empty CSV file gracefully
     if not data:
         print("No assignment data found. The file may be empty.")
         return
 
     print("\n========== GRADE EVALUATION REPORT ==========\n")
 
-    # TODO a) Score Validation: Check all scores are between 0 and 100 ---
+    # a) Score Validation: Ensure all scores fall within the 0-100 range
     print("--- Score Validation ---")
     scores_valid = True
     for item in data:
@@ -54,11 +54,12 @@ def evaluate_grades(data):
     if scores_valid:
         print("  All scores are valid.")
 
-    # TODO b) Weight Validation: Total=100, Summative=40, Formative=60 ---
+    # b) Weight Validation: Total must be 100, Formative must be 60, Summative must be 40
     print("\n--- Weight Validation ---")
     formative_weight = 0
     summative_weight = 0
     total_weight = 0
+    # Accumulate weights for each category separately
     for item in data:
         total_weight += item['weight']
         if item['group'] == "Formative":
@@ -79,17 +80,19 @@ def evaluate_grades(data):
     if weights_valid:
         print("  All weights are valid.")
 
-    # TODO c) Calculate Final Grade and GPA ---
+    # c) Calculate Final Grade and GPA
     print("\n--- Grade Calculation ---")
     final_grade = 0
     for item in data:
+        # Each assignment contributes (score * weight / 100) to the final grade
         grade = item['score'] * item['weight'] / 100
         final_grade += grade
+    # Convert final grade to a GPA on a 5.0 scale
     gpa = (final_grade / 100) * 5.0
     print(f"  Final Grade: {final_grade:.2f}%")
     print(f"  GPA: {gpa:.2f} / 5.00")
 
-    # TODO d) Pass/Fail Status: >= 50% in BOTH categories ---
+    # d) Pass/Fail Status: Student must score >= 50% in BOTH categories
     print("\n--- Pass/Fail Status ---")
     cumulative_formative = 0
     cumulative_summative = 0
@@ -98,6 +101,7 @@ def evaluate_grades(data):
             cumulative_formative += item['score'] * item['weight']
         if item['group'] == "Summative":
             cumulative_summative += item['score'] * item['weight']
+    # Weighted average per category = total weighted score / total weight for that category
     av_formative = cumulative_formative / formative_weight
     av_summative = cumulative_summative / summative_weight
 
@@ -110,17 +114,22 @@ def evaluate_grades(data):
         status = "FAILED"
     print(f"\n  >> Final Status: {status}")
 
-    # TODO e) Resubmission Logic: Failed formative with highest weight ---
+    # e) Resubmission Logic: Find failed formative assignments with the highest weight
     print("\n--- Resubmission Eligibility ---")
     failed = []
     highest_weight = 0
+
+    # Step 1: Collect all formative assignments that scored below 50
     for item in data:
         if item['group'] == 'Formative' and item['score'] < 50:
             failed.append(item)
+
+    # Step 2: Find the highest weight among the failed assignments
     for ass in failed:
         if ass['weight'] > highest_weight:
             highest_weight = ass['weight']
 
+    # Step 3: Display all failed assignments that match the highest weight
     resubmit = False
     for ass in failed:
         if ass['weight'] == highest_weight:
